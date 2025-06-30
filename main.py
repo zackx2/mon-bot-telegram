@@ -1,37 +1,17 @@
 import os
-import snscrape.modules.twitter as sntwitter
-import requests
-from bs4 import BeautifulSoup
-from telegram import Bot
 import asyncio
+import snscrape.modules.twitter as sntwitter
+from telegram import Bot
 
-BOT_TOKEN = os.environ['BOT_TOKEN']
-CHANNEL_ID = -2424886189
-
-TWITTER_USER = 'FabrizioRomano'
-FOOTMERCATO_URL = 'https://www.footmercato.net/'
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHANNEL_ID = os.getenv("CHANNEL_ID")
 
 bot = Bot(token=BOT_TOKEN)
 
-async def scrape_twitter():
-    last_tweet = next(sntwitter.TwitterUserScraper(TWITTER_USER).get_items())
-    tweet_text = last_tweet.content
-    reformulated = f"{tweet_text}"
-    await bot.send_message(chat_id=CHANNEL_ID, text=reformulated)
-
-async def scrape_footmercato():
-    response = requests.get(FOOTMERCATO_URL)
-    soup = BeautifulSoup(response.content, 'html.parser')
-    title_tag = soup.find('h2')
-    if title_tag:
-        title = title_tag.get_text().strip()
-        reformulated = f"{title}"
-        await bot.send_message(chat_id=CHANNEL_ID, text=reformulated)
-
 async def main():
-    while True:
-        await scrape_twitter()
-        await scrape_footmercato()
-        await asyncio.sleep(300)
+    tweet = next(sntwitter.TwitterUserScraper('FabrizioRomano').get_items())
+    text = tweet.content.split('.')[0]
+    await bot.send_message(chat_id=CHANNEL_ID, text=text)
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
